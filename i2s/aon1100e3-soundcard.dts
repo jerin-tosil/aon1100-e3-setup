@@ -1,0 +1,54 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2708";
+
+    fragment@0 {
+        target = <&i2s>;
+        __overlay__ {
+            status = "okay";
+        };
+    };
+	
+	fragment@1 {
+        target-path = "/";
+        __overlay__ {
+                aon1100_codec: aon1100_codec {
+                #sound-dai-cells = <0>;
+				compatible = "aon,aon1100e3";
+                status = "okay";
+            };
+        };
+    };
+	
+    fragment@2 {
+        target = <&sound>;
+        slave_overlay: __overlay__ {
+			compatible = "simple-audio-card";
+			simple-audio-card,format = "i2s";
+			simple-audio-card,name = "aon1100e3"; 
+			simple-audio-card,bitclock-slave = <&dailink0_slave>;
+            simple-audio-card,frame-slave = <&dailink0_slave>;
+			status = "okay";
+			simple-audio-card,widgets =
+					"Microphone", "TX_I2S_SDO",
+					"Speaker", "RX_I2S_SDIN";
+			simple-audio-card,routing =
+					"RX_I2S_SDIN", "Playback",
+					"Capture", "TX_I2S_SDO";
+
+
+			simple-audio-card,cpu {
+				sound-dai = <&i2s>;
+			};
+			dailink0_slave: simple-audio-card,codec {
+				sound-dai = <&aon1100_codec>;
+			};
+        };
+    };
+
+    __overrides__ {
+        alsaname = <&slave_overlay>,"simple-audio-card,name";
+    };
+};
